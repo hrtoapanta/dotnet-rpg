@@ -29,6 +29,27 @@ namespace dotnet_rpg.Services.CharacterService
             return serviceResponse;
         }
 
+        public async Task<ServiceResponse<List<GetCharacterDto>>> DeleteCharacter(int Id)
+        {
+            var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
+            try{
+
+            var character = characters.FirstOrDefault(c=>c.Id==Id);
+            if(character is null){
+                throw new Exception($"Character with Id {Id} not found");
+            }
+           characters.Remove(character);
+            
+            serviceResponse.Data= characters.Select(c=> _mapper.Map<GetCharacterDto>(c)).ToList();
+         
+            }
+            catch(Exception ex){
+                serviceResponse.Success=false;
+                serviceResponse.Message = ex.Message;
+            }
+             return serviceResponse;
+        }
+
         public async Task<ServiceResponse<List<GetCharacterDto>>> GetAllCharacters()
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
@@ -47,7 +68,19 @@ namespace dotnet_rpg.Services.CharacterService
         public async Task<ServiceResponse<GetCharacterDto>> UpdateCharacter(UpdateChartacterDto updatedCharacter)
         {
             var serviceResponse = new ServiceResponse<GetCharacterDto>();
+            try{
+
             var character = characters.FirstOrDefault(c=>c.Id==updatedCharacter.Id);
+            if(character is null){
+                throw new Exception($"Character with Id {updatedCharacter.Id} not found");
+            }
+            //mapeo de objetos con dos opciones 
+            // la primera opcion indicamos la clase destino y el objeto que queremos mapear
+            //_mapper.Map<Character>(updatedCharacter);
+            
+            //esta segunda mapeamos indicando el objeto origen(updateCharacter) y el objecto destino(character)
+            //pero ademas hay que crear una nueva entrada en el mapper profile idicando las clases que se se van a mapear
+            _mapper.Map(updatedCharacter, character);
             character.Name = updatedCharacter.Name;
             character.HitPoints = updatedCharacter.HitPoints;
             character.Strength = updatedCharacter.Strength;
@@ -56,7 +89,13 @@ namespace dotnet_rpg.Services.CharacterService
             character.Class = updatedCharacter.Class;
             
             serviceResponse.Data= _mapper.Map<GetCharacterDto>(character);
-          return serviceResponse;
+         
+            }
+            catch(Exception ex){
+                serviceResponse.Success=false;
+                serviceResponse.Message = ex.Message;
+            }
+             return serviceResponse;
         }
     }
 }
